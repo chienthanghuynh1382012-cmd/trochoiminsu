@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trắc Nghiệm Lịch Sử - Thành Lập Đảng 1930</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- Canvas Confetti cho màn hình chiến thắng -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  
+  <style>
+    :root {
+      --bg-pad: #FAF6F0;
+      --red-lacquer: #A61C1C;
+      --red-dark: #7A0C0C;
+      --gold-metallic: #D4AF37;
+      --gold-light: #F7E7B4;
+      --ink-black: #1A1A1A;
+      --white-card: #FFFFFF;
+      --green-correct: #2E7D32;
+      --red-wrong: #C62828;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: #0A0A0A;
+      font-family: 'Montserrat', sans-serif;
+      color: var(--ink-black);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Container 16:9 Chuẩn Trình Chiếu */
+    .app-viewport {
+      width: 100vw;
+      max-width: 1280px;
+      height: 56.25vw;
+      max-height: 720px;
+      background-color: var(--bg-pad);
+      border: 3px solid var(--gold-metallic);
+      box-shadow: 0 0 50px rgba(212, 175, 55, 0.3);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+
+    /* SVG Họa tiết Trống Đồng ở góc */
+    .bg-drum {
+      position: absolute;
+      width: 350px;
+      height: 350px;
+      opacity: 0.05;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .top-right { top: -120px; right: -120px; }
+    .bottom-left { bottom: -120px; left: -120px; }
+
+    /* Header Thanh Điểm */
+    header {
+      background: linear-gradient(135deg, var(--red-lacquer) 0%, var(--red-dark) 100%);
+      border-bottom: 3px solid var(--gold-metallic);
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      height: 70px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    }
+
+    .brand-title {
+      font-family: 'Merriweather', serif;
+      color: #FFF;
+      font-size: 1.2rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .brand-title span { color: var(--gold-metallic); }
+
+    .scoreboard {
+      display: flex;
+      gap: 15px;
+    }
+
+    .team-card {
+      background: rgba(0,0,0,0.4);
+      border: 1.5px solid var(--gold-metallic);
+      border-radius: 8px;
+      padding: 6px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #FFF;
+      font-size: 0.9rem;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .team-card.active-turn {
+      background: linear-gradient(135deg, var(--gold-metallic) 0%, #B38F24 100%);
+      color: var(--ink-black);
+      font-weight: 800;
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.9);
+      transform: scale(1.08);
+      border-color: #FFF;
+    }
+
+    .team-score {
+      font-family: 'Merriweather', serif;
+      font-weight: 900;
+      font-size: 1.15rem;
+      color: var(--gold-metallic);
+    }
+    .active-turn .team-score { color: var(--ink-black); }
+
+    /* Main Area */
+    main {
+      flex: 1;
+      padding: 20px 35px;
+      display: flex;
+      flex-direction: column;
+      z-index: 5;
+      position: relative;
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+      justify-content: space-between;
+    }
+
+    .screen.active { display: flex; }
+
+    /* Welcome Screen */
+    .welcome-box {
+      text-align: center;
+      margin: auto;
+      max-width: 850px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid var(--gold-metallic);
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .welcome-box h1 {
+      font-family: 'Merriweather', serif;
+      color: var(--red-lacquer);
+      font-size: 2.3rem;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+
+    .welcome-box p {
+      font-size: 1.1rem;
+      line-height: 1.7;
+      margin-bottom: 30px;
+      color: #333;
+    }
+
+    .btn-main {
+      background: linear-gradient(135deg, var(--red-lacquer) 0%, var(--red-dark) 100%);
+      color: #FFF;
+      border: 2px solid var(--gold-metallic);
+      padding: 14px 40px;
+      font-size: 1.15rem;
+      font-weight: 800;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-family: 'Montserrat', sans-serif;
+      text-transform: uppercase;
+      box-shadow: 0 4px 15px rgba(166, 28, 28, 0.4);
+    }
+
+    .btn-main:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(166, 28, 28, 0.6);
+    }
+
+    /* Quiz Header */
+    .quiz-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .q-badge {
+      background: var(--red-lacquer);
+      color: #FFF;
+      padding: 6px 18px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 800;
+      border: 1px solid var(--gold-metallic);
+    }
+
+    .turn-indicator {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--red-lacquer);
+      background: var(--gold-light);
+      padding: 6px 16px;
+      border-radius: 20px;
+      border: 1px solid var(--gold-metallic);
+    }
+
+    /* Main Card */
+    .main-question-card {
+      background: #FFFFFF;
+      border: 2px solid var(--gold-metallic);
+      border-radius: 10px;
+      padding: 22px 28px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      margin-bottom: 15px;
+    }
+
+    .question-title {
+      font-family: 'Merriweather', serif;
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: var(--red-lacquer);
+      line-height: 1.5;
+      margin-bottom: 15px;
+    }
+
+    /* Trắc nghiệm Options Grid */
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .opt-card {
+      background: var(--bg-pad);
+      border: 1.5px solid #E0D8CB;
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    .opt-card:hover:not(.locked) {
+      border-color: var(--gold-metallic);
+      background: var(--gold-light);
+      transform: translateY(-2px);
+    }
+
+    .opt-card.correct-ans {
+      background: #E8F5E9 !important;
+      border-color: var(--green-correct) !important;
+      color: var(--green-correct) !important;
+      font-weight: 800 !important;
+      box-shadow: 0 0 10px rgba(46, 125, 50, 0.3);
+    }
+
+    .opt-card.wrong-ans {
+      background: #FFEBEE !important;
+      border-color: var(--red-wrong) !important;
+      color: var(--red-wrong) !important;
+      font-weight: 800 !important;
+    }
+
+    /* Đúng/Sai Grid */
+    .tf-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .tf-row {
+      background: var(--bg-pad);
+      border: 1.5px solid #E0D8CB;
+      border-radius: 8px;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+
+    .tf-text { flex: 1; padding-right: 15px; }
+
+    .tf-btns {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-tf {
+      padding: 6px 16px;
+      border: 1.5px solid #CCC;
+      background: #FFF;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 800;
+      transition: all 0.2s;
+    }
+
+    .btn-tf.sel-true { background: #1976D2; color: #FFF; border-color: #1976D2; }
+    .btn-tf.sel-false { background: #F57C00; color: #FFF; border-color: #F57C00; }
+
+    .tf-row.correct-eval { border-left: 6px solid var(--green-correct); background: #E8F5E9; }
+    .tf-row.wrong-eval { border-left: 6px solid var(--red-wrong); background: #FFEBEE; }
+
+    /* Explanation Box */
+    .explanation-box {
+      background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);
+      border: 1.5px solid var(--gold-metallic);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 0.88rem;
+      color: #424242;
+      margin-top: 10px;
+      display: none;
+      line-height: 1.4;
+    }
+
+    /* Quiz Actions Footer */
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--red-lacquer) 0%, var(--red-dark) 100%);
+      color: #FFF;
+      border: 1.5px solid var(--gold-metallic);
+      padding: 12px 28px;
+      font-size: 1rem;
+      font-weight: 800;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(166, 28, 28, 0.3);
+      display: none; /* Chỉ hiện sau khi đã trả lời */
+    }
+
+    .btn-next:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(166, 28, 28, 0.5);
+    }
+
+    /* Summary Screen */
+    .summary-box {
+      text-align: center;
+      width: 100%;
+      margin: auto;
+    }
+
+    .winner-title {
+      font-family: 'Merriweather', serif;
+      font-size: 2rem;
+      color: var(--red-lacquer);
+      margin-bottom: 25px;
+      text-transform: uppercase;
+    }
+
+    .final-scores {
+      display: flex;
+      justify-content: center;
+      gap: 25px;
+      margin-bottom: 25px;
+    }
+
+    .final-card {
+      background: #FFF;
+      border: 2px solid var(--gold-metallic);
+      padding: 20px 30px;
+      border-radius: 10px;
+      min-width: 180px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    }
+
+    .final-card h3 { font-size: 1.05rem; color: #666; margin-bottom: 8px; }
+    .final-card .score { font-size: 2.2rem; font-weight: 900; color: var(--red-lacquer); font-family: 'Merriweather', serif; }
+
+    .summary-recap {
+      background: #FFF;
+      border: 1px solid #DDD;
+      height: 180px;
+      overflow-y: auto;
+      text-align: left;
+      padding: 15px 20px;
+      font-size: 0.88rem;
+      border-radius: 8px;
+      margin-bottom: 25px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="app-viewport">
+    <!-- SVG TRỐNG ĐỒNG BACKGROUND -->
+    <svg class="bg-drum top-right" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="45" fill="none" stroke="#1A1A1A" stroke-width="2"/>
+      <circle cx="50" cy="50" r="35" fill="none" stroke="#1A1A1A" stroke-width="1"/>
+      <circle cx="50" cy="50" r="25" fill="none" stroke="#1A1A1A" stroke-width="1.5"/>
+    </svg>
+    <svg class="bg-drum bottom-left" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="45" fill="none" stroke="#1A1A1A" stroke-width="2"/>
+      <circle cx="50" cy="50" r="35" fill="none" stroke="#1A1A1A" stroke-width="1"/>
+    </svg>
+
+    <!-- HEADER / SCOREBOARD -->
+    <header>
+      <div class="brand-title">
+        <span>🇻🇳</span> THÀNH LẬP ĐẢNG 1930
+      </div>
+      <div class="scoreboard">
+        <div class="team-card" id="card-team-0">
+          <span>Đội 1: Sơn Mài</span>
+          <span class="team-score" id="score-team-0">0đ</span>
+        </div>
+        <div class="team-card" id="card-team-1">
+          <span>Đội 2: Vàng Đồng</span>
+          <span class="team-score" id="score-team-1">0đ</span>
+        </div>
+        <div class="team-card" id="card-team-2">
+          <span>Đội 3: Cổ Phong</span>
+          <span class="team-score" id="score-team-2">0đ</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main>
+      <!-- SCREEN 1: WELCOME -->
+      <div class="screen active" id="screen-welcome">
+        <div class="welcome-box">
+          <h1>Hội Nghị Thành Lập Đảng 1930</h1>
+          <p>Trò chơi thi đấu Lịch sử dành cho 3 đội chơi.<br>Đúng: <strong>+10 điểm</strong> | Sai: <strong>-10 điểm</strong>.<br>Mỗi đội sẽ luân phiên nhau trả lời câu hỏi.</p>
+          <button class="btn-main" onclick="startGame()">BẮT ĐẦU THI ĐẤU</button>
+        </div>
+      </div>
+
+      <!-- SCREEN 2: QUIZ -->
+      <div class="screen" id="screen-quiz">
+        <div class="quiz-header">
+          <div class="q-badge" id="q-number-badge">Câu 1/10</div>
+          <div class="turn-indicator" id="turn-indicator-text">LƯỢT THI ĐẤU: ĐỘI 1 SƠN MÀI</div>
+        </div>
+
+        <!-- MAIN CARD -->
+        <div class="main-question-card">
+          <div class="question-title" id="q-title-text">Nội dung câu hỏi?</div>
+
+          <!-- Trắc nghiệm Grid -->
+          <div class="options-grid" id="mc-options-container"></div>
+
+          <!-- Đúng/Sai Grid -->
+          <div class="tf-container" id="tf-options-container" style="display:none;"></div>
+
+          <!-- Explanation -->
+          <div class="explanation-box" id="explanation-box"></div>
+        </div>
+
+        <div class="quiz-footer">
+          <button class="btn-next" id="btn-next-question" onclick="nextQuestion()">CÂU TIẾP THEO ►</button>
+        </div>
+      </div>
+
+      <!-- SCREEN 3: SUMMARY -->
+      <div class="screen" id="screen-summary">
+        <div class="summary-box">
+          <h2 class="winner-title" id="winner-announcement">🏆 QUÁN QUÂN: ĐỘI SƠN MÀI</h2>
+          <div class="final-scores">
+            <div class="final-card">
+              <h3>Sơn Mài</h3>
+              <div class="score" id="final-score-0">0đ</div>
+            </div>
+            <div class="final-card">
+              <h3>Vàng Đồng</h3>
+              <div class="score" id="final-score-1">0đ</div>
+            </div>
+            <div class="final-card">
+              <h3>Cổ Phong</h3>
+              <div class="score" id="final-score-2">0đ</div>
+            </div>
+          </div>
+
+          <div class="summary-recap" id="summary-recap-list"></div>
+
+          <button class="btn-main" onclick="restartGame()">THI ĐẤU LẠI ↺</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    // SOUND EFFECTS (Web Audio API)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(type) {
+      if(audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if(type === 'correct') {
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+      } else {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.4);
+        gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+      }
+    }
+
+    // DỮ LIỆU CÂU HỎI
+    const questions = [
+      // 5 CÂU TRẮC NGHIỆM
+      {
+        type: 'MC',
+        title: 'Câu 1: Thời gian diễn ra Hội nghị thành lập Đảng Cộng sản Việt Nam là khi nào?',
+        options: [
+          'A. Ngày 6 tháng 1 năm 1930',
+          'B. Ngày 3 đến ngày 7 tháng 2 năm 1930',
+          'C. Ngày 24 tháng 2 năm 1930',
+          'D. Ngày 1 tháng 5 năm 1930'
+        ],
+        correct: 1, // B
+        explain: 'Hội nghị hợp nhất chính thức họp từ ngày 3 đến 7/2/1930 tại Cửu Long (Hương Cảng).'
+      },
+      {
+        type: 'MC',
+        title: 'Câu 2: Ai là người chủ trì và thống nhất ba tổ chức cộng sản thành Đảng Cộng sản Việt Nam?',
+        options: [
+          'A. Phan Bội Châu',
+          'B. Võ Nguyên Giáp',
+          'C. Nguyễn Ái Quốc',
+          'D. Phan Chu Trinh'
+        ],
+        correct: 2, // C
+        explain: 'Nguyễn Ái Quốc là người chủ trì Hội nghị hợp nhất các tổ chức cộng sản.'
+      },
+      {
+        type: 'MC',
+        title: 'Câu 3: Ba tổ chức cộng sản được thống nhất tại Hội nghị thành lập Đảng là:',
+        options: [
+          'A. Đông Dương Cộng sản Đảng, An Nam Cộng sản Đảng, Đông Dương Cộng sản Liên đoàn',
+          'B. Hội VN Cách mạng Thanh niên, Tân Việt Cách mạng đảng, VN Quốc dân đảng',
+          'C. Đông Dương Cộng sản Đảng, Hội VN Cách mạng Thanh niên, An Nam Cộng sản Đảng',
+          'D. An Nam Cộng sản Đảng, Đông Dương Cộng sản Liên đoàn, VN Độc lập đảng'
+        ],
+        correct: 0, // A
+        explain: 'Ba tổ chức gồm: Đông Dương CS Đảng, An Nam CS Đảng và Đông Dương CS Liên đoàn.'
+      },
+      {
+        type: 'MC',
+        title: 'Câu 4: Tài liệu nào được thông qua tại Hội nghị thành lập Đảng?',
+        options: [
+          'A. Bản Tuyên ngôn Độc lập',
+          'B. Chính cương vắn tắt, Sách lược vắn tắt, Điều lệ tóm tắt',
+          'C. Lời kêu gọi toàn quốc kháng chiến',
+          'D. Tuyên ngôn của Chính phủ lâm thời'
+        ],
+        correct: 1, // B
+        explain: 'Hội nghị thông qua Chánh cương vắn tắt, Sách lược vắn tắt, Chương trình vắn tắt và Điều lệ tóm tắt.'
+      },
+      {
+        type: 'MC',
+        title: 'Câu 5: Ý nghĩa nào KHÔNG phải là ý nghĩa của việc thành lập Đảng Cộng sản Việt Nam?',
+        options: [
+          'A. Là bước ngoặt vĩ đại trong lịch sử cách mạng Việt Nam',
+          'B. Kết thúc thời kỳ khủng hoảng về đường lối cách mạng',
+          'C. Đánh đổ ngay chính quyền thực dân Pháp ngay sau khi thành lập',
+          'D. Đặt dấu mốc giai đoạn lãnh đạo mới của cách mạng Việt Nam'
+        ],
+        correct: 2, // C
+        explain: 'Sự ra đời của Đảng chưa đánh đổ ngay thực dân Pháp nhưng mở ra thời kỳ lãnh đạo mới.'
+      },
+
+      // 5 CÂU ĐÚNG / SAI
+      {
+        type: 'TF',
+        title: 'Câu 6 (Đúng/Sai): Ba tổ chức Cộng sản trước năm 1930',
+        items: [
+          { text: 'A. Đông Dương Cộng sản Đảng ra đời ở Bắc Kỳ vào tháng 6/1929.', ans: true },
+          { text: 'B. An Nam Cộng sản Đảng ra đời ở Trung Kỳ vào tháng 8/1929.', ans: false },
+          { text: 'C. Đông Dương Cộng sản Liên đoàn ra đời ở Trung Kỳ vào tháng 9/1929.', ans: true },
+          { text: 'D. Đông Dương Cộng sản Liên đoàn chỉ được thành lập sau khi Đảng ra đời.', ans: false }
+        ],
+        explain: 'An Nam CS Đảng ra đời ở Nam Kỳ. Đông Dương CS Liên đoàn ra đời từ tháng 9/1929.'
+      },
+      {
+        type: 'TF',
+        title: 'Câu 7 (Đúng/Sai): Hội nghị thành lập Đảng',
+        items: [
+          { text: 'A. Hội nghị diễn ra từ 3 đến 7/2/1930 tại Cửu Long, Hương Cảng.', ans: true },
+          { text: 'B. Đại biểu cả 3 tổ chức đều có mặt đầy đủ tại Hội nghị chính thức.', ans: false },
+          { text: 'C. Nguyễn Ái Quốc là người chủ trì Hội nghị hợp nhất.', ans: true },
+          { text: 'D. Hội nghị thành lập Đảng diễn ra tại Hà Nội, Việt Nam.', ans: false }
+        ],
+        explain: 'Đại biểu Đông Dương CS Liên đoàn không đến kịp. Hội nghị diễn ra ở Hương Cảng.'
+      },
+      {
+        type: 'TF',
+        title: 'Câu 8 (Đúng/Sai): Văn kiện và Cương lĩnh',
+        items: [
+          { text: 'A. Thông qua Chánh cương vắn tắt, Sách lược vắn tắt, Điều lệ vắn tắt.', ans: true },
+          { text: 'B. Tuyên ngôn Độc lập 2/9/1945 được thông qua tại Hội nghị này.', ans: false },
+          { text: 'C. Cương lĩnh chỉ nêu vấn đề ruộng đất, không đề cập giải phóng dân tộc.', ans: false },
+          { text: 'D. Cương lĩnh xác định đường lối tiến lên xã hội cộng sản.', ans: true }
+        ],
+        explain: 'Tuyên ngôn Độc lập ra đời năm 1945. Giải phóng dân tộc là nhiệm vụ hàng đầu trong Cương lĩnh.'
+      },
+      {
+        type: 'TF',
+        title: 'Câu 9 (Đúng/Sai): Ý nghĩa lịch sử',
+        items: [
+          { text: 'A. Chấm dứt cuộc khủng hoảng về đường lối cứu nước và giai cấp lãnh đạo.', ans: true },
+          { text: 'B. Ngay sau khi thành lập, Việt Nam giành được độc lập hoàn toàn.', ans: false },
+          { text: 'C. Là sự kết hợp Chủ nghĩa Mác-Lênin với phong trào công nhân và yêu nước.', ans: true },
+          { text: 'D. Mọi cuộc đấu tranh chống thực dân phong kiến kết thúc ngay lập tức.', ans: false }
+        ],
+        explain: 'Sự ra đời của Đảng mở ra giai đoạn đấu tranh mới chứ chưa giành độc lập ngay năm 1930.'
+      },
+      {
+        type: 'TF',
+        title: 'Câu 10 (Đúng/Sai): Vai trò và tiến trình thống nhất',
+        items: [
+          { text: 'A. Nguyễn Ái Quốc có vai trò quyết định trong việc chuẩn bị và thành lập Đảng.', ans: true },
+          { text: 'B. Hội VN Cách mạng Thanh niên là 1 trong 3 tổ chức CS dự Hội nghị.', ans: false },
+          { text: 'C. Đông Dương Cộng sản Liên đoàn gia nhập Đảng ngày 24/2/1930.', ans: true },
+          { text: 'D. Ba tổ chức hoàn tất thống nhất trước khi Hội nghị bắt đầu.', ans: false }
+        ],
+        explain: 'Hội VNCMTN là tổ chức tiền thân. Việc hợp nhất hoàn tất tại và sau Hội nghị.'
+      }
+    ];
+
+    // TRẠNG THÁI GAME
+    let currentQ = 0;
+    let scores = [0, 0, 0];
+    let currentTeam = 0; // 0, 1, 2
+    let answersState = Array(questions.length).fill(null);
+    let tempTfAnswers = [null, null, null, null];
+
+    const teamNames = ["Đội 1: Sơn Mài", "Đội 2: Vàng Đồng", "Đội 3: Cổ Phong"];
+
+    function startGame() {
+      showScreen('screen-quiz');
+      renderQuestion();
+    }
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function updateScoreboard() {
+      for(let i=0; i<3; i++) {
+        document.getElementById(`score-team-${i}`).innerText = `${scores[i]}đ`;
+        document.getElementById(`card-team-${i}`).classList.toggle('active-turn', i === currentTeam);
+      }
+      document.getElementById('turn-indicator-text').innerText = `LƯỢT THI ĐẤU: ${teamNames[currentTeam].toUpperCase()}`;
+    }
+
+    function renderQuestion() {
+      updateScoreboard();
+      const q = questions[currentQ];
+      document.getElementById('q-number-badge').innerText = `Câu ${currentQ + 1}/${questions.length}`;
+      document.getElementById('q-title-text').innerText = q.title;
+      
+      const mcContainer = document.getElementById('mc-options-container');
+      const tfContainer = document.getElementById('tf-options-container');
+      const expBox = document.getElementById('explanation-box');
+      const nextBtn = document.getElementById('btn-next-question');
+
+      mcContainer.innerHTML = '';
+      tfContainer.innerHTML = '';
+      expBox.style.display = 'none';
+      nextBtn.style.display = 'none'; // Ẩn nút "Tiếp theo" cho đến khi chọn đáp án
+
+      if(q.type === 'MC') {
+        mcContainer.style.display = 'grid';
+        tfContainer.style.display = 'none';
+
+        q.options.forEach((opt, idx) => {
+          const div = document.createElement('div');
+          div.className = 'opt-card';
+          div.innerText = opt;
+          div.onclick = () => handleMcChoice(idx, div);
+          mcContainer.appendChild(div);
+        });
+
+      } else if(q.type === 'TF') {
+        mcContainer.style.display = 'none';
+        tfContainer.style.display = 'flex';
+        tempTfAnswers = [null, null, null, null];
+
+        q.items.forEach((item, idx) => {
+          const row = document.createElement('div');
+          row.className = 'tf-row';
+          row.innerHTML = `
+            <div class="tf-text">${item.text}</div>
+            <div class="tf-btns">
+              <button class="btn-tf" id="tf-t-${idx}" onclick="handleTfChoice(${idx}, true)">ĐÚNG</button>
+              <button class="btn-tf" id="tf-f-${idx}" onclick="handleTfChoice(${idx}, false)">SAI</button>
+            </div>
+          `;
+          tfContainer.appendChild(row);
+        });
+      }
+    }
+
+    // XỬ LÝ CHỌN TRẮC NGHIỆM
+    function handleMcChoice(selectedIdx, cardElem) {
+      const q = questions[currentQ];
+      const isCorrect = (selectedIdx === q.correct);
+
+      // Khóa tất cả các thẻ chọn
+      document.querySelectorAll('.opt-card').forEach(c => c.style.pointerEvents = 'none');
+
+      if(isCorrect) {
+        cardElem.classList.add('correct-ans');
+        scores[currentTeam] += 10;
+        playSound('correct');
+      } else {
+        cardElem.classList.add('wrong-ans');
+        document.querySelectorAll('.opt-card')[q.correct].classList.add('correct-ans');
+        scores[currentTeam] -= 10;
+        playSound('wrong');
+      }
+
+      answersState[currentQ] = { team: currentTeam, delta: isCorrect ? 10 : -10 };
+
+      // Hiện giải thích & Hiện nút CÂU TIẾP THEO
+      const expBox = document.getElementById('explanation-box');
+      expBox.style.display = 'block';
+      expBox.innerText = `💡 GIẢI THÍCH: ${q.explain}`;
+
+      document.getElementById('btn-next-question').style.display = 'block';
+
+      updateScoreboard();
+    }
+
+    // XỬ LÝ CÂU ĐÚNG/SAI
+    function handleTfChoice(itemIdx, userAns) {
+      tempTfAnswers[itemIdx] = userAns;
+      document.getElementById(`tf-t-${itemIdx}`).className = `btn-tf ${userAns === true ? 'sel-true' : ''}`;
+      document.getElementById(`tf-f-${itemIdx}`).className = `btn-tf ${userAns === false ? 'sel-false' : ''}`;
+
+      if(!tempTfAnswers.includes(null)) {
+        evaluateTfQuestion();
+      }
+    }
+
+    function evaluateTfQuestion() {
+      const q = questions[currentQ];
+      let delta = 0;
+
+      q.items.forEach((item, idx) => {
+        const rows = document.querySelectorAll('.tf-row');
+        if(tempTfAnswers[idx] === item.ans) {
+          delta += 10;
+          rows[idx].classList.add('correct-eval');
+        } else {
+          delta -= 10;
+          rows[idx].classList.add('wrong-eval');
+        }
+      });
+
+      scores[currentTeam] += delta;
+      if(delta > 0) playSound('correct');
+      else playSound('wrong');
+
+      answersState[currentQ] = { team: currentTeam, delta: delta };
+
+      document.querySelectorAll('.btn-tf').forEach(b => b.disabled = true);
+
+      const expBox = document.getElementById('explanation-box');
+      expBox.style.display = 'block';
+      expBox.innerText = `💡 GIẢI THÍCH: ${q.explain}`;
+
+      document.getElementById('btn-next-question').style.display = 'block';
+
+      updateScoreboard();
+    }
+
+    // NÚT CHUYỂN SANG CÂU TIẾP THEO
+    function nextQuestion() {
+      currentTeam = (currentTeam + 1) % 3; // Luân phiên Đội 1 -> Đội 2 -> Đội 3
+      
+      if(currentQ < questions.length - 1) {
+        currentQ++;
+        renderQuestion();
+      } else {
+        renderSummary();
+      }
+    }
+
+    function renderSummary() {
+      showScreen('screen-summary');
+
+      document.getElementById('final-score-0').innerText = `${scores[0]}đ`;
+      document.getElementById('final-score-1').innerText = `${scores[1]}đ`;
+      document.getElementById('final-score-2').innerText = `${scores[2]}đ`;
+
+      let maxScore = Math.max(...scores);
+      let winners = [];
+      scores.forEach((s, i) => { if(s === maxScore) winners.push(teamNames[i]); });
+
+      document.getElementById('winner-announcement').innerText = 
+        `🏆 QUÁN QUÂN: ${winners.join(" & ")} (${maxScore} điểm)`;
+
+      try {
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+      } catch(e){}
+
+      const recapContainer = document.getElementById('summary-recap-list');
+      recapContainer.innerHTML = '<strong>LỊCH SỬ THI ĐẤU CÁC CÂU HỎI:</strong><br><br>';
+
+      questions.forEach((q, idx) => {
+        const state = answersState[idx];
+        if(state) {
+          recapContainer.innerHTML += `
+            <div>- <strong>Câu ${idx+1}:</strong> ${teamNames[state.team]} thi đấu -> 
+            <span style="color:${state.delta > 0 ? '#2E7D32':'#C62828'}; font-weight:bold;">
+              ${state.delta > 0 ? '+' : ''}${state.delta} điểm
+            </span></div>
+          `;
+        }
+      });
+    }
+
+    function restartGame() {
+      currentQ = 0;
+      scores = [0, 0, 0];
+      currentTeam = 0;
+      answersState = Array(questions.length).fill(null);
+      showScreen('screen-welcome');
+      updateScoreboard();
+    }
+  </script>
+</body>
+</html>
